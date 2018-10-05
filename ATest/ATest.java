@@ -1,38 +1,85 @@
-import java.util.Scanner;
+package ATest;
+
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+
+import javax.swing.ImageIcon;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+
+import sun.misc.BASE64Decoder;
 
 public class ATest {
-        public static void main(String[] args)
+    JFrame f=new JFrame();
+    GridBagLayout gb=new GridBagLayout();
+    GridBagConstraints gbc=new GridBagConstraints();
+    Font font=new Font("XHei Apple",Font.PLAIN,16);
+    String input="";
+    String output;
+    //æ·»åŠ ç»„ä»¶ï¼Œæ¨ªåæ ‡x çºµåæ ‡y gxä¸ºæ¨ªå‘å æ®ç½‘æ ¼æ•° xä»¥0ä¸ºå¼€å§‹
+    void addJComponent (JComponent c, int x, int y, int gx, int gy){
+        gbc.gridx=x;
+        gbc.gridy=y;
+        gbc.gridwidth=gx;
+        gbc.gridheight=gy;
+        gb.setConstraints(c,gbc);
+        c.setFont(font);
+        f.add(c);
+    }
+
+    public static boolean GenerateImage(String imgStr)
+    { //å¯¹å­—èŠ‚æ•°ç»„å­—ç¬¦ä¸²è¿›è¡ŒBase64è§£ç å¹¶ç”Ÿæˆå›¾ç‰‡Â Â Â Â Â Â Â 
+        if (imgStr == null) //å›¾åƒæ•°æ®ä¸ºç©º
+
+            return false;
+        BASE64Decoder decoder = new BASE64Decoder();
+        try
         {
-            Scanner sc=new Scanner(System.in);
-            //ÊäÈëÒ»¸öÊı¾İÔÚĞÂ´´½¨¼üÅÌÂ¼Èë¶ÔÏóÖ®ºó
-            int number=sc.nextInt();
-            String s=zuoMiMa(number);
-            System.out.println("×Ö·û´®Îª:"+s);
+//Base64è§£ç 
+
+            byte[] b = decoder.decodeBuffer(imgStr);
+            for(int i=0;i<b.length;++i)
+            {
+                if(b[i]<0)
+                {//è°ƒæ•´å¼‚å¸¸æ•°æ®Â Â Â Â Â Â Â Â 
+                    b[i]+=256;
+                }
+            }
+            //ç”Ÿæˆjpegå›¾ç‰‡
+            String imgFilePath = "D:\\new.jpg";//æ–°ç”Ÿæˆçš„å›¾ç‰‡
+            OutputStream out = new FileOutputStream(imgFilePath);
+            out.write(b);
+            out.flush();
+            out.close();
+            return true;
         }
 
-        public static String zuoMiMa(int number)
-        {
-            int[] arr=new int[10];
-            int i=0,count=0;
-            while(number>0)
-            {
-                arr[i]=number%10;//µÃµ½µÄÊÇ×îºóÒ»Î»Êı£¬ÒòÎªÒªµÃµ½ÄæĞòÊä³ö
-                number/=10;
-                count++;
-                i++;
-            }
-            System.out.println("ÕâÊÇÄæĞòÊä³ö£º");
-            for(i=0;i<count;i++)
-            {
-                System.out.print(arr[i]+",");
-            }
-            System.out.println("$$$$$$$$$$");
-            String s="";
-            for(i=0;i<count;i++)
-            {
-                s+=arr[i];
-            }
-            return s ;
-        }
+catch (Exception e){
+        return false;}
+    }
 
+    void init(){
+        f.setLayout(new FlowLayout());
+        JLabel label=new JLabel();
+        label.setIcon(new ImageIcon("C:\\Users\\loghd\\Desktop\\ç¼–è¯‘åŸç†\\è¯æ³•åˆ†æçŠ¶æ€è½¬æ¢å›¾.png"));
+        JScrollPane jsp=new JScrollPane(label);
+        jsp.setPreferredSize(new Dimension(600,900));
+        jsp.setSize(200,200);
+        addJComponent(jsp,0,0,1,1);
+        f.setVisible(true);
+        f.pack();
+    }
+
+    public static void main(String[] args){
+        new ATest().init();
+    }
 }

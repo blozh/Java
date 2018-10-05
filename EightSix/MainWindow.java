@@ -20,9 +20,9 @@ class MainWindow extends WindowAdapter{
     Statement stmt;
 
     void initWindow() throws Exception {
-        Class.forName("com.mysql.cj.jdbc.Driver");
+        Class.forName("org.sqlite.JDBC");
 
-        Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/EightSix?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true","loghder","8426784");
+        Connection con = DriverManager.getConnection("jdbc:sqlite:C:\\sqlite\\EightSix.db");
         //Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/EightSix", "root", "");
         stmt=con.createStatement();
 
@@ -30,12 +30,11 @@ class MainWindow extends WindowAdapter{
         //两句话要分开try，如果合起来try的话，当一个表格不存在而另一个表格存在时，不存在的表格就永远无法被创建
         try {
             stmt.executeUpdate("create table students (num int,name varchar(10),subject varchar(10),score double)");
-            //stmt.executeUpdate("create table students (num int primary key,name varchar(10),subject varchar(10),score double)");
-        }catch(java.sql.SQLSyntaxErrorException e){
+        }catch(org.sqlite.SQLiteException e){
             System.out.println("数据表已经存在，无需创建，直接添加数据");
         }
         try {stmt.executeUpdate("create table courses (class varchar(10),subject varchar(10),time varchar(10),place varchar(10))");
-        }catch(java.sql.SQLSyntaxErrorException e){
+        }catch(org.sqlite.SQLiteException e){
             System.out.println("数据表已经存在，无需创建，直接添加数据");
         }
 
@@ -68,7 +67,8 @@ class MainWindow extends WindowAdapter{
             }
 
             //删除table中所有数据
-            stmt.executeUpdate("truncate students");
+            stmt.executeUpdate("DELETE FROM students");
+            stmt.executeUpdate("VACUUM");
 
             //写入table
             for(int i = 0; i < row; i++){
@@ -91,7 +91,8 @@ class MainWindow extends WindowAdapter{
             }
 
             //删除table中所有数据
-            stmt.executeUpdate("truncate courses");
+            stmt.executeUpdate("DELETE FROM courses");
+            stmt.executeUpdate("VACUUM");
 
             //写入table
             for(int i = 0; i < row; i++){

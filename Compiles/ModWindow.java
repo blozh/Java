@@ -15,7 +15,7 @@ abstract class ModWindow implements ActionListener{
     GridBagConstraints gbc=new GridBagConstraints();
     Font font=new Font("XHei Apple",Font.PLAIN,16);
     String input="";
-    String output;
+    String output="";
     //添加组件，横坐标x 纵坐标y gx为横向占据网格数 x以0为开始
     void addJComponent (JComponent c, int x, int y, int gx, int gy){
         gbc.gridx=x;

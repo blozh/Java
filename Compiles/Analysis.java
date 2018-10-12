@@ -1,7 +1,17 @@
 package Compiles;
 
+import java.util.ArrayList;
+import java.util.List;
+
 //方法类
 final class Analysis {
+    /*词法分析*/
+    private static ArrayList<String> values;
+    private static ArrayList<String> types;
+    private static ArrayList<String> errorvalues;
+    private static ArrayList<String> errors;
+    private static ArrayList<Integer> errorsRows;
+
     private static boolean isAlpha(char c){
         return ((c<='z')&&(c>='a')) || ((c<='Z')&&(c>='A')) || (c=='_');
     }
@@ -27,17 +37,13 @@ final class Analysis {
                 t=='/'||t==')'||t=='}'||t==']'||t=='|'||t=='&';
     }
 
-    private static String outputResult(String mark, String value,String output){
-        return output+'('+mark+','+value+')'+'\n';
-    }
+    public static void LexicalAnalysis(String input){
+        values=new ArrayList<>();
+        types=new ArrayList<>();
+        errors=new ArrayList<>();
+        errorvalues=new ArrayList<>();
+        errorsRows=new ArrayList<>();
 
-    private static String errorResult(int rowNum, String value, String type,String error) {
-        return error+"Error："+rowNum+"行,"+value+','+type+'\n';
-    }
-
-    public static String LexicalAnalysis(String input){
-        String output="";
-        String error="";
         int rowNum=1;
 
         char c;
@@ -61,10 +67,12 @@ final class Analysis {
                         temp=input.charAt(++i);
                     }
                     if(isKey(s)){
-                        output=outputResult(s.toUpperCase(),"",output);
+                        types.add(s.toUpperCase());
+                        values.add(" ");
                     }
                     else{
-                        output=outputResult("ID","\""+s+"\"",output);
+                        types.add("ID");
+                        values.add(s);
                     }
                 }
                 else if(isNumber(c)){
@@ -75,7 +83,8 @@ final class Analysis {
                         temp=input.charAt(++i);
                     }
                     if(isEnd(temp)){
-                        output=outputResult("UCON_整数",s,output);
+                        types.add("UCON_整数");
+                        values.add(s);
                     }
                     else if(temp=='.'&&isNumber(input.charAt(i+1))){
                         s+='.';
@@ -85,14 +94,17 @@ final class Analysis {
                             temp=input.charAt(++i);
                         }
                         if(isEnd(temp)){
-                            output=outputResult("UCON_小数",s,output);
+                            types.add("UCON_小数");
+                            values.add(s);
                         }
                         else{
                             while(!isEnd(temp)){
                                 s+=temp;
                                 temp=input.charAt(++i);
                             }
-                            error=errorResult(rowNum,s,"小数错误",error);
+                            errors.add("小数错误");
+                            errorvalues.add(s);
+                            errorsRows.add(rowNum);
                         }
                     }
                     else{
@@ -100,7 +112,9 @@ final class Analysis {
                             s+=temp;
                             temp=input.charAt(++i);
                         }//eg 12.3edfe,此循环用于略过edfe这四个字母
-                        error=errorResult(rowNum,s,"数字错误",error);
+                        errors.add("数字错误");
+                        errorvalues.add(s);
+                        errorsRows.add(rowNum);
                     }
                 }
                 else{
@@ -112,25 +126,30 @@ final class Analysis {
                         case ')':
                         case '{':
                         case '}':
-                            output=outputResult("双界符",s,output);
+                            types.add("双界符");
+                            values.add(s);
                             i++;
                             break;
                         case ',':
                         case '.':
                         case ';':
-                            output=outputResult("单界符",s,output);
+                            types.add("单界符");
+                            values.add(s);
                             i++;
                             break;
                         case '+':
-                            output=outputResult("PL",s,output);
+                            types.add("PL");
+                            values.add(s);
                             i++;
                             break;
                         case '-':
-                            output=outputResult("MI",s,output);
+                            types.add("MI");
+                            values.add(s);
                             i++;
                             break;
                         case '*':
-                            output=outputResult("MU",s,output);
+                            types.add("MU");
+                            values.add(s);
                             i++;
                             break;
                         case'/':
@@ -152,7 +171,8 @@ final class Analysis {
                                 break;
                             }
                             else{
-                                output=outputResult("DI",s,output);
+                                types.add("DI");
+                                values.add(s);
                                 i++;
                                 break;
                             }
@@ -160,10 +180,13 @@ final class Analysis {
                             if(input.charAt(i+1)=='='){
                                 s+='=';
                                 i+=2;
-                                output=outputResult("IS",s,output);
+                                types.add("IS");
+                                values.add(s);
                             }
                             else {
-                                error=errorResult(rowNum,s,"IS",error);
+                                errors.add("IS错误");
+                                errorvalues.add(s);
+                                errorsRows.add(rowNum);
                                 i++;//略过错误号
                             }
                             break;
@@ -172,10 +195,12 @@ final class Analysis {
                             if(input.charAt(i+1)==input.charAt(i)){
                                 s+=input.charAt(i);
                                 i+=2;
-                                output=outputResult("短路逻辑运算符",s,output);
+                                types.add("短路逻辑运算符");
+                                values.add(s);
                             }
                             else {
-                                output=outputResult("非短路逻辑运算符",s,output);
+                                types.add("非短路逻辑运算符");
+                                values.add(s);
                                 i++;//略过错误号
                             }
                             break;
@@ -193,39 +218,54 @@ final class Analysis {
                                 i++;//略过
                             }
                             switch (s){
-                                case">":output=outputResult("GT",s,output);break;
-                                case">=":output=outputResult("GE",s,output);break;
-                                case"<":output=outputResult("LT",s,output);break;
-                                case"<=":output=outputResult("LE",s,output);break;
-                                case"<>":output=outputResult("NE",s,output);break;
+                                case">":types.add("GT");values.add(s);break;
+                                case">=":types.add("GE");values.add(s);break;
+                                case"<":types.add("LT");values.add(s);break;
+                                case"<=":types.add("LE");values.add(s);break;
+                                case"<>":types.add("NE");values.add(s);;break;
                             }
                             break;
                         case '=':
-                            output=outputResult("EQ",s,output);
+                            types.add("EQ");values.add(s);
                             i++;
                             break;
                         default:
                             i++;
-                            error=errorResult(rowNum,s,"未知错误",error);
+                            errors.add("未知错误");
+                            errorvalues.add(s);
+                            errorsRows.add(rowNum);
                     }
                 }
                 i--;//字符指针退一位
             }
         }
-        if(error.equals("")){
-            return "NO ERROR\n- - - - - - - - - - -\n"+output ;
-        }else {
-            return error + "- - - - - - - - - - -\n" + output;
-        }
     }
 
-    public static String ParseAnalysis(String input){
-        String output="";
-        return output;
+    public static ArrayList<String> getTypes() {
+        return types;
     }
 
-    public static String SenmanticAnalysis(String input){
-        String output="";
-        return output;
+    public static ArrayList<String> getValues() {
+        return values;
+    }
+
+    public static ArrayList<String> getErrors() {
+        return errors;
+    }
+
+    public static ArrayList<String> getErrorvalues() {
+        return errorvalues;
+    }
+
+    public static ArrayList<Integer> getErrorsRows() {
+        return errorsRows;
+    }
+
+
+    /*语法分析*/
+    public static void ParseAnalysis(String input){
+    }
+    /*语义分析*/
+    public static void SenmanticAnalysis(String input){
     }
 }

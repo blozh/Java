@@ -109,6 +109,7 @@ class Calculator{
     }
 
     void init(){
+        f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         f.setLayout(gb);
         gbc.fill=GridBagConstraints.BOTH;//所有组件都可以在横向和纵向上扩大
         gbc.weightx=1;

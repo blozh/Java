@@ -12,12 +12,12 @@ class Demo {
 
         Class.forName("org.sqlite.JDBC");
 
-        Connection con = DriverManager.getConnection("jdbc:sqlite:C:\\sqlite\\EightSix.db");
+        Connection con = DriverManager.getConnection("jdbc:sqlite:C:\\sqlite\\Studentinfo.db");
         Statement stmt=con.createStatement();
 
         //如果要创建的table已经存在的话，就对异常进行处理
         try {
-            stmt.executeUpdate("create table student (Name varchar(10),Sex varchar(2),Age Int)");
+            stmt.executeUpdate("create table student (Name char(10),Sex char(2),Age Int)");
         }catch(org.sqlite.SQLiteException e){
             System.out.println("数据表已经存在，无需创建，直接添加数据");
         }

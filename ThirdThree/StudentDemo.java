@@ -10,7 +10,7 @@ import java.util.Scanner;
 
 class StudentDemo {
     public static void main(String[] args){
-        int num=2;
+        int num=3;
         Scanner in=new Scanner(System.in);
         Student[] a=new Student[num];
         System.out.println("请依次输入"+num+"个学生的信息");

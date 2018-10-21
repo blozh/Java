@@ -49,7 +49,7 @@ class Server extends Thread{
                 }
             }
         }catch(IOException e){
-            e.printStackTrace();
+           // e.printStackTrace();
         }
     }
 

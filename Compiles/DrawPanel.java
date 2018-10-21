@@ -7,6 +7,7 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.geom.GeneralPath;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -32,7 +33,6 @@ class DrawPanel extends JPanel {
     //
 
     private Graphics2D g2d;
-
     private void drawStatus(int x, int y, int str){
         g2d.setFont(new Font("XHei Apple",Font.PLAIN,25));
         g2d.drawOval(x,y,50,50);
@@ -212,6 +212,7 @@ class DrawPanel extends JPanel {
                             g2d.drawLine(x[i]+50,y[i]+25,x[a[i][j]]+25,y[a[i][j]]+50);
                             g2d.fillRect(x[a[i][j]]+25,y[a[i][j]]+50,8,8);
                             g2d.drawString(str,(x[a[i][j]]+x[i]+75)/2,(y[a[i][j]]+y[i]+75)/2);
+
                         }
                     }
                     s[edgeNum]=i;

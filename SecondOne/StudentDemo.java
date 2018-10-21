@@ -22,13 +22,13 @@ class StudentDemo {
              year=in.nextInt();
              month=in.nextInt();
              date=in.nextInt();
+            double grade=in.nextDouble();
             while(!MyDate.isLegal(year,month,date)){
-                System.out.println("日期输入不合法，请重试");
+                System.out.println("日期输入不合法，请重新输入日期");
                 year=in.nextInt();
                 month=in.nextInt();
                 date=in.nextInt();
             }
-            double grade=in.nextDouble();
             a[i]=new Student(name,age,year,month,date,grade);
         }
         for(int i=0;i<num;i++){

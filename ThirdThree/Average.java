@@ -5,5 +5,5 @@ package ThirdThree;
  */
 
 interface Average {
-    void outputAver();
+    double aver(int num,double sumGrade,double min,double max);
 }

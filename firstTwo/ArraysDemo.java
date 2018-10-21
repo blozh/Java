@@ -10,7 +10,7 @@ class ArraysDemo{
         Arrays.sort(a);
         System.out.println("排序后的数组为\n"+Arrays.toString(a));
         int result=Arrays.binarySearch(a,x);
-        if(result==-2)
+        if(result<0)
             System.out.println("该整数不在数组中");
         else
             System.out.println("该整数是数组的第"+(result+1)+"个元素");

@@ -96,12 +96,6 @@ class LexicalWindow extends ModWindow{
             jfc.setFileSelectionMode(JFileChooser.SAVE_DIALOG);
             jfc.showDialog(new JLabel(),"保存");
             File file=jfc.getSelectedFile();
-            output+="---------------------\n";
-            ArrayList<String> values=Analysis.getValues();
-            ArrayList<String> types=Analysis.getTypes();
-            for(int i=0;i<values.size();i++){
-                output+=("("+types.get(i)+","+values.get(i)+")\n");
-            }
             try {
                 OutputStreamWriter write=new OutputStreamWriter(new FileOutputStream(file));
                 BufferedWriter bw=new BufferedWriter(write);
@@ -127,15 +121,20 @@ class LexicalWindow extends ModWindow{
             if(errors.isEmpty()){
                 textAreas[1].setText("NO ERROR!!");
             }else{
+                output="";
                 for(int i=0;i<errors.size();i++){
                     output+=(errorsRows.get(i)+" 行："+errorvalues.get(i)+"  "+errors.get(i)+'\n');
                 }
                 textAreas[1].setText(output);
+                output+="---------------------\n";
+                for(int i=0;i<values.size();i++){
+                    output+=("("+types.get(i)+","+values.get(i)+")"+'\n');
+                }
             }
         }
         if(actionEvent.getActionCommand()=="状态转换图"){
             JFrame f=new JFrame("状态转换图");
-            f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            //f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             f.setSize(800,800);
             f.setLocationRelativeTo(null);
             DrawPanel dp=new DrawPanel();

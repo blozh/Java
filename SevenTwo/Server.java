@@ -1,47 +1,84 @@
 package SevenTwo;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.net.ServerSocket;
-import java.net.Socket;
 
-/**
- * Created by loghd on 2018/8/7.
- */
+import java.io.*;
+import java.net.*;
+import java.util.*;
 
-class Server {
-    public static void main(String[] args) throws IOException{
-        ServerSocket ss=new ServerSocket(30000);
-        while(true) {
-            Socket s = ss.accept();
-            BufferedReader br = new BufferedReader(new InputStreamReader(s.getInputStream()));
-            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
-            bw.write("连接成功");
-            bw.newLine();
-            bw.flush();
-            System.out.println("客户的地址：" + s.getInetAddress());
-            System.out.println("正在监听");
+class Server{
+    ServerSocket ss;
+    Socket s;
+    ArrayList<Socket> list;
+    Receiver r;
+    ArrayList<Receiver> rlist;
+    String name="管理员";
 
-            while (br.readLine().equals("保持连接")) {
-                double[] a = new double[3];
-                double p = 0;
-                for (int i = 0; i < 3; i++) {
-                    a[i] = Double.parseDouble(br.readLine());
-                    p = p + a[i];
+    class Receiver extends Thread{
+        String str;
+        BufferedWriter bw;
+        BufferedReader br;
+        @Override
+        public void run() {
+            try {
+                bw = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
+                br = new BufferedReader(new InputStreamReader(s.getInputStream()));
+                new Sender().start();
+                while(true){
+                    str=br.readLine();
+                    System.out.println(str);
+                    //发送str到所有的客户端，所以需要知道所有客户端的bw
+                    for(int i=0;i<rlist.size();i++){
+                        rlist.get(i).bw.write(str);
+                        rlist.get(i).bw.newLine();
+                        rlist.get(i).bw.flush();
+                    }
                 }
-                p /= 2;
-                double area = Math.sqrt(p * (p - a[0]) * (p - a[1]) * (p - a[2]));
-                bw.write(String.valueOf(area));
-                bw.newLine();
-                bw.flush();
+            }catch (IOException e){
+                e.printStackTrace();
             }
-            br.close();
-            bw.close();
-            s.close();
-            System.out.println("客户离开");
         }
+
+        class Sender extends Thread{
+            @Override
+            public void run() {
+                Scanner sc=new Scanner(System.in);
+                while(true){
+                    String str=name+":"+sc.nextLine();
+                    try {
+                        System.out.println(str);
+                        for(int i=0;i<rlist.size();i++){
+                            rlist.get(i).bw.write(str);
+                            rlist.get(i).bw.newLine();
+                            rlist.get(i).bw.flush();
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+    }
+
+    void Init(){
+        try {
+            ss=new ServerSocket(20000);
+            list=new ArrayList<>();
+            rlist=new ArrayList<>();
+            while(true){
+                s=ss.accept();
+                list.add(s);
+                //每当有一个客户端连接服务器的时候，都会新建一个线程，用于接收这个服务器的消息
+                //每一个Receive类都有一个自己的bw和br
+                r= new Receiver();
+                rlist.add(r);
+                r.start();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void main(String[] args) {
+        new Server().Init();
     }
 }

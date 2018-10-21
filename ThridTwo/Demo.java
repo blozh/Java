@@ -15,10 +15,5 @@ class Demo {
         if(a.equals("XYZ")){
             throw new Modify("This is XYZ");
         }
-
-        /*String b=new String("a");
-        String c="a";
-        System.out.print(b=="a");
-        System.out.print(c=="a");*/
     }
 }

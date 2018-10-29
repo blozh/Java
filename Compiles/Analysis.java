@@ -1,7 +1,16 @@
 package Compiles;
 
+import java.awt.Color;
+import java.awt.Component;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
 
 //方法类
 final class Analysis {
@@ -261,11 +270,138 @@ final class Analysis {
         return errorsRows;
     }
 
-
     /*语法分析*/
-    public static void ParseAnalysis(String input){
+    //规约式转换
+    static char reduce(String x){
+        if(x.length()==1)
+            return 'F';
+        else if(x.charAt(0)=='(')
+            return 'F';
+        char[] from={'*','/','+','-'};
+        char[] to={'T','T','E','E'};
+        for (int i = 0; i < from.length; i++) {
+            if(from[i]==x.charAt(1))
+                return to[i];
+        }
+        return ' ';
+    }
+
+    //用于输出到表格中的规则式转换
+    static String reduceGongshi(String x){
+        if(x.length()==1)
+            return "F->i";
+        else if(x.charAt(0)=='(')
+            return "F->(E)";
+        char[] from={'*','/','+','-'};
+        String[] to={"T->T*F","T->T/F","E->E+T","E->E-T"};
+        for (int i = 0; i < from.length; i++) {
+            if(from[i]==x.charAt(1))
+                return to[i];
+        }
+        return " ";
+    }
+
+    //判断是否为终结符
+    static boolean isVt(char x){
+        char[] vt={'i','(',')','+','-','*','/','#'};
+        int i;
+        for (i = 0; i < vt.length; i++) {
+            if(vt[i]==x)
+                break;
+        }
+        if(i==vt.length)
+            return false;
+        else
+            return true;
+    }
+
+    //优先级判断，根据横纵坐标取出大小于符号,1为前者大于后者，0为等于，-1为小于
+    static int prioriyJudge(DefaultTableModel model2,char x,char y){
+        int xx=0,yy=0;
+        for (int i = 0; i < model2.getRowCount(); i++) {
+            if(x==model2.getValueAt(i,0).toString().charAt(0))
+                xx=i;
+            if(y==model2.getValueAt(i,0).toString().charAt(0))
+                yy=i;
+        }
+        int result=0;
+        switch (model2.getValueAt(xx,yy+1).toString()){
+            case ">":model2.setValueAt(">    █",xx,yy+1);result=1;break;
+            case "=":model2.setValueAt("=    █",xx,yy+1);result=0;break;
+            case "<":model2.setValueAt("<    █",xx,yy+1);result=-1;break;
+        }
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        switch (result){
+            case 1:model2.setValueAt(">",xx,yy+1);break;
+            case 0:model2.setValueAt("=",xx,yy+1);break;
+            case -1:model2.setValueAt("<",xx,yy+1);break;
+        }
+        return result;
+    }
+
+
+
+        public static void ParseAnalysis(DefaultTableModel model, DefaultTableModel model2, JTable t2){
+
+        model.setRowCount(0);//清空表格
+        int num=0;//用于记录步骤
+        String a="",stack="#",Gongshi="";
+        char r;
+        //将队列转换为字符串
+        for(int i=0;i<types.size();i++){
+            if(types.get(i)=="UCON_小数"||types.get(i)=="UCON_整数")
+                a+="i";
+            else
+                a+=values.get(i);
+        }
+        a+="#";
+        //System.out.println(a);
+        int i=0,k=0;//i为字符串指针，k为stack指针
+        do{
+            int j;
+            r=a.charAt(i++);
+            if(isVt(stack.charAt(k)))
+                j=k;
+            else
+                j=k-1;
+            while(prioriyJudge(model2,stack.charAt(j),r)>0){
+                char q;
+                do{
+                    q=stack.charAt(j);
+                    if(isVt(stack.charAt(j-1)))
+                        j--;
+                    else
+                        j-=2;
+                }while(prioriyJudge(model2,stack.charAt(j),q)>=0);
+                char newVn=reduce(stack.substring(j+1,k+1));
+                Gongshi=reduceGongshi(stack.substring(j+1,k+1));
+                k=j+1;
+                stack=stack.substring(0,k);
+                stack+=newVn;
+                num++;
+                model.addRow(new String[]{num+"",stack,a.substring(i,a.length()),""});
+                model.setValueAt(Gongshi,model.getRowCount()-2,3);
+            }
+            if(prioriyJudge(model2,stack.charAt(j),r)<=0){
+                stack+=r;
+                k++;
+                num++;
+                model.addRow(new String[]{num+"",stack,a.substring(i,a.length()),""});
+            }
+            else {
+                //写入error到表格
+                num++;
+                model.addRow(new String[]{"ERROR", "", "", ""});
+            }
+        }while(r!='#');
     }
     /*语义分析*/
     public static void SenmanticAnalysis(String input){
     }
 }
+
+

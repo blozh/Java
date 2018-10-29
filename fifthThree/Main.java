@@ -34,7 +34,7 @@ class Seller extends Person{
         five=1;
     }
 
-    boolean sell(Buyer b){
+    synchronized boolean sell(Buyer b){
         if(b.twenty==1&&b.ticket==2&&ten>=1){
             twenty++;
             ten--;

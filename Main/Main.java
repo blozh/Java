@@ -1,72 +1,46 @@
 package Main;
 import java.util.Scanner;
-interface Shape
-{
-    abstract float getArea();//求面积
-    abstract float getPerimeter();//求周长
-}
-class Circle implements Shape
-{
-    private float r=0;
-    private final static float PI=(float)Math.PI;
-    public Circle (float r)
-    {
-        this.r=r;
-    }
-    public float getArea()
-    {
-        return PI*r*r;
-    }
-    public float getPerimeter()
-    {
-        return 2*PI*r;
-    }
-}
-class rectangle implements Shape
-{
-    private float length=0;
-    private float wide=0;
-    public rectangle(float length,float wide)
-    {
-        this.length=length;
-        this.wide=wide;
-    }
-    public float getArea()
-    {
-        return (length*wide);
-    }
-    public float getPerimeter()
-    {
-        return 2*(length+wide);
+import java.util.Arrays;
+class ArrayUtils{
+    public static double findMax(double[] arr,int begin, int end) throws Exception{
+        double max=arr[begin];
+        try {
+            if(begin>=end )
+                throw new IllegalArgumentException();
+            if(begin<0)
+                throw new NegativeArraySizeException();
+            if(end>arr.length)
+                throw new ArrayIndexOutOfBoundsException();
+            else
+                for(int i=begin; i<end;i++)
+                    if(max<arr[i])
+                        max=arr[i];
+            return max;
+        }catch(IllegalArgumentException e1) {
+            System.out.println("java.lang.IllegalArgumentException: begin:"+begin+" >= end:"+end);
+        }catch(NegativeArraySizeException e2) {
+            System.out.println("java.lang.IllegalArgumentException: begin:"+begin+" < 0");
+        }catch(ArrayIndexOutOfBoundsException e3) {
+            System.out.println("java.lang.IllegalArgumentException: end:"+end+" > arr.length");
+        }
+        return max;
     }
 }
-public class Main
-{
-    public static void main(String[] args)
-    {
-        Scanner sc = new Scanner(System.in);
-        int a = sc.nextInt();
-        for(int i=0;i<a;i++)
-        {
-            int b = sc.nextInt();
-            if(b==1)
-            {
-                float c=sc.nextFloat();
-                Shape circle =new Circle(c);
-                System.out.printf("%.2f",circle.getArea());
-                System.out.printf(" ");
-                System.out.printf("%.2f",circle.getPerimeter());
-            }
-            if(b==2)
-            {
-                float d=sc.nextFloat();
-                float e=sc.nextFloat();
-                Shape rectangle =new rectangle(d,e);
-                System.out.printf("%.2f",rectangle.getArea());
-                System.out.printf(" ");
-                System.out.printf("%.2f",rectangle.getPerimeter());
-            }
-            System.out.println();
+public class Main {
+    public static void main(String[] args) throws Exception  {
+        Scanner sc=new Scanner(System.in);
+        int n=sc.nextInt();
+        double a[]=new double[n];
+        for(int i=0;i<n;i++)
+            a[i]=sc.nextInt();
+        while(sc.hasNextInt()) {
+            System.out.println(ArrayUtils.findMax(a, sc.nextInt(), sc.nextInt()));
+        }
+        try {
+            System.out.println(ArrayUtils.class.getDeclaredMethod("findMax", double[].class,int.class,int.class));
+        } catch (Exception e1) {
         }
     }
 }
+
+

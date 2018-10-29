@@ -1,53 +1,79 @@
 package SevenTwo;
-
-
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.*;
+import java.io.OutputStreamWriter;
 import java.net.Socket;
-import java.util.Scanner;
+import java.util.Random;
 
-class Client {
+class Client extends MyFrame implements ActionListener {
+
     Socket s;
     BufferedWriter bw;
     BufferedReader br;
-    String name;
+    Receive r=new Receive();
 
-    void Init(){
+    @Override
+    public void actionPerformed(ActionEvent actionEvent) {
+        if(actionEvent.getActionCommand()=="发送"){
+            String str=ta[1].getText();
+            ta[1].setText("");
+            try{
+                bw.write(this.getName()+"："+str+"\nend\n");
+                bw.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        }
+    }
+
+    class Receive extends Thread{
+        @Override
+        public void run() {
+            while(true) {
+                String str = "";
+                String temp;
+                try {
+                    while (!(temp = br.readLine()).equals("end")) {
+                        str = str + temp + '\n';
+                    }
+                } catch (Exception e) {
+                }
+                ta[0].setText(str);
+            }
+        }
+    }
+
+    Client(){
+        Random r=new Random();
+        this.setName("【"+r.nextInt(1000)+"】");
         try {
-            s=new Socket("127.0.0.1",20000);
+            s = new Socket("127.0.0.1", 20000);
             bw = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
             br = new BufferedReader(new InputStreamReader(s.getInputStream()));
-            //Receiver类用于时刻接收服务器端发送的消息
-            //所以要单独开一个线程，和下面的while语句同时进行
-            //下面的while语句的功能是，时刻接收用户在终端的输入，并把输入发送给客户端
-            new Receiver().start();
-            Scanner sc=new Scanner(System.in);
-            System.out.print("请输入昵称：");
-            name=sc.nextLine();
-            while(true){
-                bw.write(name+":"+sc.nextLine());
-                bw.newLine();
-                bw.flush();
-            }
-        } catch (IOException e) {
+        }catch(Exception e){
             e.printStackTrace();
         }
     }
 
-    class Receiver extends Thread{
-        @Override
-        public void run() {
+    @Override
+    public void run() {
+        super.run();
+        b.addActionListener(this);
+    }
+
+    public static void main(String [] args){
+        Client c[]=new Client[2];
+        for(int i=0;i<2;i++) {
+            c[i]= new Client();
+            c[i].start();
+            c[i].r.start();
             try {
-                while(true){
-                    String str=br.readLine();
-                    System.out.println(str);
-                }
-            }catch (IOException e){
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
-    }
-
-    public static void main(String[] args) {
-        new Client().Init();
     }
 }

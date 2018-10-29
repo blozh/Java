@@ -14,6 +14,7 @@ public class MainWindow {
         tab.addTab("词法分析",new LexicalWindow().getPanel());
         tab.addTab("语法分析",new ParseWindow().getPanel());
         tab.addTab("语义分析",new SenmanticWindow().getPanel());
+        tab.setSelectedIndex(0);//设置默认选项卡
         frame.setLocationRelativeTo(null);//把窗口设置在屏幕中央
         frame.setVisible(true);
     }

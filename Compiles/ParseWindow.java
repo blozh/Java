@@ -26,7 +26,7 @@ class ParseWindow extends ModWindow implements ItemListener {
     JLabel label=new JLabel("语法分析方法：");
     JButton b=new JButton("分析");
     ButtonGroup bg=new ButtonGroup();
-    String[] radioButtonText={"算符优先","LR(0)"};
+    String[] radioButtonText={"算符优先","SLR(1)"};
     JRadioButton[] radioButton=new JRadioButton[2];
 
 
@@ -102,7 +102,7 @@ class ParseWindow extends ModWindow implements ItemListener {
                         {"i", ">", ">", ">", ">",    "", "", ">", ">"},
                         {"(", "<", "<", "<", "<",    "<", "<", "=", ""},
                         {")", ">", ">", ">", ">",    "", "", ">", ">"},
-                        {"#", "<", "<", "<", "<",    "<", "<", "", ""},
+                        {"#", "<", "<", "<", "<",    "<", "<", "", "="},
                 };
                 model2.setColumnIdentifiers(new String[]{"","+","-","*","/","i","(",")","#"});
                 model2.setRowCount(0);//清空表格
@@ -114,19 +114,24 @@ class ParseWindow extends ModWindow implements ItemListener {
             if (btn.isSelected() && btn.getText() == radioButtonText[1]) {
                 isSuanfu=false;
                 String[][] sheet = new String[][]{
-                        {"0", "", "", "", "", "", "", "", "", "", "", ""},
-                        {"1", "", "", "", "", "", "", "", "", "", "", ""},
-                        {"2", "", "", "", "", "", "", "", "", "", "", ""},
-                        {"3", "", "", "", "", "", "", "", "", "", "", ""},
-                        {"4", "", "", "", "", "", "", "", "", "", "", ""},
-                        {"5", "", "", "", "", "", "", "", "", "", "", ""},
-                        {"6", "", "", "", "", "", "", "", "", "", "", ""},
-                        {"7", "", "", "", "", "", "", "", "", "", "", ""},
-                        {"8", "", "", "", "", "", "", "", "", "", "", ""},
-                        {"9", "", "", "", "", "", "", "", "", "", "", ""},
-                        {"10", "", "", "", "", "", "", "", "", "", "", ""},
+                        {"0","S4","","","","","","S5","","1","2","3"},
+                        {"1","","","S6","S7","","","","Acc","","",""},
+                        {"2","","R3","R3","R3","S8","S9","","R3","","",""},
+                        {"3","","R6","R6","R6","R6","R6","","R6","","",""},
+                        {"4","S4","","","","","","S5","","10","2","3"},
+                        {"5","","R8","R8","R8","R8","R8","","R8","","",""},
+                        {"6","S4","","","","","","S5","","","11","3"},
+                        {"7","S4","","","","","","S5","","","12","3"},
+                        {"8","S4","","","","","","S5","","","","13"},
+                        {"9","S4","","","","","","S5","","","","14"},
+                        {"10","","S15","S6","S7","","","","","","",""},
+                        {"11","","R1","R1","R1","S8","S9","","R1","","",""},
+                        {"12","","R2","R2","R2","S8","S9","","R2","","",""},
+                        {"13","","R4","R4","R4","R4","R4","","R4","","",""},
+                        {"14","","R5","R5","R5","R5","R5","","R5","","",""},
+                        {"15","","R7","R7","R7","R7","R7","","R7","","",""}
                 };
-                model2.setColumnIdentifiers(new String[]{"","E","T","F","+","-","*","/","i","(",")","#"});
+                model2.setColumnIdentifiers(new String[]{"","(",")","+","-","*","/","i","#","E","T","F"});
                 model2.setRowCount(0);//清空表格
                 for (int i = 0; i < sheet.length; i++) {
                     model2.addRow(sheet[i]);
@@ -143,17 +148,21 @@ class ParseWindow extends ModWindow implements ItemListener {
 
     @Override
     public void actionPerformed(ActionEvent actionEvent) {
-        class MyThread extends Thread{
-            @Override
-            public void run() {
-                Analysis.ParseAnalysis(model,model2,t2);
-            }
-        }
         if(isSuanfu){
-            new MyThread().start();
+            new Thread(){
+                @Override
+                public void run() {
+                    Analysis.ParseAnalysis(model,model2);
+                }
+            }.start();
         }
         if(!isSuanfu){
-            System.out.println("不是算符");
+            new Thread(){
+                @Override
+                public void run() {
+                    Analysis.ParseAnalysis_SLR(model,model2);
+                }
+            }.start();
         }
     }
 }

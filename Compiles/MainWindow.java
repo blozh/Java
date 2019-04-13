@@ -8,14 +8,14 @@ public class MainWindow {
     private JTabbedPane tab=new JTabbedPane();
 
     MainWindow(){
-        frame.setBounds(350,50,600,900);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.add(tab);
         tab.addTab("词法分析",new LexicalWindow().getPanel());
-        tab.addTab("语法分析",new ParseWindow().getPanel());
-        tab.addTab("语义分析",new SenmanticWindow().getPanel());
+        tab.addTab("语法及语义分析",new ParseWindow().getPanel());
         tab.setSelectedIndex(0);//设置默认选项卡
+        frame.setSize(800,800);
         frame.setLocationRelativeTo(null);//把窗口设置在屏幕中央
+        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         frame.setVisible(true);
     }
 

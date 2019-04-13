@@ -1,22 +1,15 @@
 package Compiles;
 
-import java.awt.Color;
-import java.awt.Component;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.Stack;
 
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JTable;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableCellRenderer;
 
 //方法类
 final class Analysis {
     /*词法分析*/
     private static ArrayList<String> values;
+    private static Stack<String> copy;//语义分析用，类似于符号表吧
     private static ArrayList<String> types;
     private static ArrayList<String> errorvalues;
     private static ArrayList<String> errors;
@@ -333,20 +326,20 @@ final class Analysis {
         int result = 2;
         switch (model2.getValueAt(xx, yy + 1).toString()) {
             case ">":
-                model2.setValueAt(">    █", xx, yy + 1);
+                model2.setValueAt("> ", xx, yy + 1);
                 result = 1;
                 break;
             case "=":
-                model2.setValueAt("=    █", xx, yy + 1);
+                model2.setValueAt("= ", xx, yy + 1);
                 result = 0;
                 break;
             case "<":
-                model2.setValueAt("<    █", xx, yy + 1);
+                model2.setValueAt("< ", xx, yy + 1);
                 result = -1;
                 break;
         }
         try {
-            Thread.sleep(1000);
+            Thread.sleep(700);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -421,7 +414,6 @@ final class Analysis {
     }
 
     /*语法分析-SLR(1)*/
-
     //将符号转换为对应的坐标
     static int symbolLocation(char x) {
         int xx = 0;
@@ -458,19 +450,59 @@ final class Analysis {
         for(int i=0;i<=k;i++){
             t+=a[i];
             if(i!=k)
-                t+=',';
+                t+=' ';
         }
         return t;
     }
+    //配合SLR（1）的语义分析
+    static int senNum=0;
+    static void Senmini(String op,String temp2,String temp3,String temp4,DefaultTableModel model3){
+        temp4+=(senNum++);
+        temp3=copy.pop();
+        copy.pop();
+        temp2=copy.pop();
+        copy.push(temp4);
+        model3.addRow(new String[]{"("+op+","+temp2+","+temp3+","+temp4+")"});
+    }
+    static void SenmanticAnalyze(int n,String left,String right,DefaultTableModel model3){
+        String temp2="",temp3="",temp4="T";
+        switch (n){
+            case 0:break;
+            case 1:
+                Senmini("+",temp2,temp3,temp4,model3);
+                break;
+            case 2:
+                Senmini("-",temp2,temp3,temp4,model3);
+                break;
+            case 3:break;
+            case 4:
+                Senmini("*",temp2,temp3,temp4,model3);
+                break;
+            case 5:
+                Senmini("/",temp2,temp3,temp4,model3);
+                break;
+            case 6:break;
+            case 7:
+                copy.pop();
+                temp4=copy.pop();
+                copy.pop();
+                copy.push(temp4);
+                break;
+            case 8:break;
+        }
+    }
 
     //主控程序
-    public static void ParseAnalysis_SLR(DefaultTableModel model, DefaultTableModel model2) {
+    public static void ParseAnalysis_SLR(DefaultTableModel model, DefaultTableModel model2, DefaultTableModel model3) {
+        copy=new Stack<>();//copy和字符串stack2同步变化
         model.setRowCount(0);//清空表格
+        model3.setRowCount(0);//清空表格
         int num = 0;//用于记录步骤
         String a = "", stack2 = "#",temp;//temp用于存放表格中的内容
+        int kherr=0;//用来判断是否是缺少右括号的错误
         //将队列转换为字符串
         for (int i = 0; i < types.size(); i++) {
-            if (types.get(i) == "UCON_小数" || types.get(i) == "UCON_整数")
+            if (types.get(i) == "UCON_小数" || types.get(i) == "UCON_整数"|| types.get(i) == "ID")
                 a += "i";
             else
                 a += values.get(i);
@@ -482,18 +514,23 @@ final class Analysis {
         try {
             do {
                 temp=model2.getValueAt(stack[k], symbolLocation(a.charAt(i))).toString();
+
                 String t=temp;//t是temp的备份
                 int t1=stack[k],t2=symbolLocation(a.charAt(i));
-                model2.setValueAt(temp+"  █",stack[k], symbolLocation(a.charAt(i)));
-                if (temp.equals("")) {
-                    //error
+                if(t2==1)
+                    kherr++;
+                if(t2==2)
+                    kherr--;
+                if (!temp.equals(""))
+                    model2.setValueAt(temp+" ",stack[k], symbolLocation(a.charAt(i)));
+                if (temp.equals(""))
                     throw new Exception("分析错误！");
-                }
-                //如果是Sn
+                    //如果是Sn
                 else if (isSn(temp)) {
                     temp=temp.substring(1,temp.length());
                     stack[++k] = Integer.parseInt(temp);
                     stack2 += a.charAt(i);
+                    copy.push(values.get(i));
                     num++;
                     model.addRow(new String[]{num + "", stack2, a.substring(i, a.length()), ""});
                     model.addRow(new String[]{"", arrays2str(stack,k), "", ""});
@@ -517,6 +554,9 @@ final class Analysis {
                     model.addRow(new String[]{num + "", stack2, a.substring(i, a.length()), ""});
                     model.addRow(new String[]{"", arrays2str(stack,k), "", ""});
                     model.setValueAt(left+"->"+right, model.getRowCount() - 4, 3);
+
+                    //规约的时候进行语义分析
+                    SenmanticAnalyze(n,left,right,model3);
                 }
                 Thread.sleep(1000);
                 model2.setValueAt(t,t1, t2);
@@ -525,13 +565,333 @@ final class Analysis {
             model.addRow(new String[]{"RIGHT!", "RIGHT!", "RIGHT!", "RIGHT!"});
         } catch (Exception e) {
             //如果分析错误，那么。。
-            model.addRow(new String[]{"ERROR!", "ERROR!", "ERROR!", "ERROR!"});
+            String errtemp="";
+            if(kherr>0)
+                errtemp="缺少右括号";
+            else if(kherr<0)
+                errtemp="缺少左括号";
+            else
+                errtemp="未知ERROR!";
+            model.addRow(new String[]{errtemp, errtemp, errtemp, errtemp});
+            model3.addRow(new String[]{errtemp});
+        }finally {
+            senNum=0;
         }
     }
 
-    /*语义分析*/
-    public static void SenmanticAnalysis(String input) {
+    /*语法分析-递归下降*/
+    //首先需要在草稿纸上改造文法，消除左递归性
+
+    static int DGnum=0;
+    static DefaultTableModel DGmodel;
+    static DefaultTableModel DGmodel2;
+    private static void DGoutput(String str,int x,int y){
+        DGnum++;
+        DGmodel.addRow(new String[]{DGnum + "", str, "", ""});
+        String t=DGmodel2.getValueAt(x,y).toString();
+        DGmodel2.setValueAt(t+' ',x,y);
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        DGmodel2.setValueAt(t,x,y);
+    }
+
+    private static int E(String a,int p){
+        if(a.charAt(p)=='('){
+            DGoutput("E->(E)Z21",0,1);
+            p++;
+            p=E(a,p);
+            if(p<0)
+                return -1;
+            else {
+                if(a.charAt(p)==')') {
+                    p++;
+                    p=Z21(a,p);
+                    if(p<0)
+                        return -1;
+                    else
+                        return p;
+                }
+                else
+                    return -1;
+            }
+        }
+        if(a.charAt(p)=='i'){
+            DGoutput("E->iZ21",0,2);
+            p++;
+            p=Z21(a,p);
+            if(p<0)
+                return -1;
+            else
+                return p;
+        }
+        return -1;
+    }
+
+    private static int T(String a,int p){
+        if(a.charAt(p)=='('){
+            DGoutput("T->(E)Z22",1,1);
+            p++;
+            p=E(a,p);
+            if(p<0)
+                return -1;
+            else {
+                if(a.charAt(p)==')') {
+                    p++;
+                    p=Z22(a,p);
+                    if(p<0)
+                        return -1;
+                    else
+                        return p;
+                }
+                else
+                    return -1;
+            }
+        }
+        if(a.charAt(p)=='i'){
+            DGoutput("T->iZ22",1,2);
+            p++;
+            p=Z22(a,p);
+            if(p<0)
+                return -1;
+            else
+                return p;
+        }
+        return -1;
+    }
+
+    private static int F(String a,int p){
+        if(a.charAt(p)=='('){
+            DGoutput("F->(E)Z23",2,1);
+            p++;
+            p=E(a,p);
+            if(p<0)
+                return -1;
+            else {
+                if(a.charAt(p)==')') {
+                    p++;
+                    p=Z23(a,p);
+                    if(p<0)
+                        return -1;
+                    else
+                        return p;
+                }
+                else
+                    return -1;
+            }
+        }
+        if(a.charAt(p)=='i'){
+            DGoutput("F->iZ23",2,2);
+            p++;
+            p=Z23(a,p);
+            if(p<0)
+                return -1;
+            else
+                return p;
+        }
+        return -1;
+    }
+
+    private static int Z11(String a,int p){
+        //对于有空产生式的非终结符，当非终结符在字符串的最后，需要匹配空产生式时
+        //p指向了最后一个字符的下一个字符，所以会发生越界错误
+        //所以需要判断一下a的长度是否等于p。
+        if(a.length()==p) {
+            DGoutput("Z11->ε",3,3);
+            return p;
+        }
+        if(a.charAt(p)=='+'||a.charAt(p)=='-'){
+            if(a.charAt(p)=='+')
+                DGoutput("Z11->+TZ11",3,1);
+            else
+                DGoutput("Z11->-TZ11",3,2);
+            p++;
+            p=T(a,p);
+            if(p<0)
+                return -1;
+            else
+            {
+                p=Z11(a,p);
+                if(p<0)
+                    return -1;
+                else
+                    return p;
+            }
+        }
+        return p;
+    }
+
+    private static int Z12(String a,int p){
+        if(a.length()==p) {
+            DGoutput("Z11->ε",4,3);
+            return p;
+        }
+        if(a.charAt(p)=='+'||a.charAt(p)=='-'){
+            if(a.charAt(p)=='+')
+                DGoutput("Z12->+TZ12",4,1);
+            else
+                DGoutput("Z12->-TZ12",4,2);
+            p++;
+            p=T(a,p);
+            if(p<0)
+                return -1;
+            else
+            {
+                p=Z12(a,p);
+                if(p<0)
+                    return -1;
+                else
+                    return p;
+            }
+        }
+        return p;
+    }
+
+    private static int Z13(String a,int p){
+        if(a.length()==p) {
+            DGoutput("Z13->ε",5,3);
+            return p;
+        }
+        if(a.charAt(p)=='+'||a.charAt(p)=='-'){
+            if(a.charAt(p)=='+')
+                DGoutput("Z13->+TZ13",5,1);
+            else
+                DGoutput("Z13->-TZ13",5,2);
+            p++;
+            p=T(a,p);
+            if(p<0)
+                return -1;
+            else
+            {
+                p=Z13(a,p);
+                if(p<0)
+                    return -1;
+                else
+                    return p;
+            }
+        }
+        return p;
+    }
+
+    private static int Z21(String a,int p){
+
+        if(a.length()==p){
+            DGoutput("Z21->Z11",6,1);
+            DGoutput("Z11->ε",3,3);
+            return p;
+        }
+        if(a.charAt(p)=='*'||a.charAt(p)=='/'){
+            if(a.charAt(p)=='*')
+                DGoutput("Z21->*FZ12",6,2);
+            else
+                DGoutput("Z21->/FZ21",6,3);
+            p++;
+            p=F(a,p);
+            if(p<0)
+                return -1;
+            else
+            {
+                p=Z21(a,p);
+                if(p<0)
+                    return -1;
+                else
+                    return p;
+            }
+        }
+        DGoutput("Z21->Z11",6,1);
+        p=Z11(a,p);
+        if(p<0)
+            return -1;
+        else return p;
+    }
+
+    private static int Z22(String a,int p){
+        if(a.length()==p){
+            DGoutput("Z22->Z12",7,1);
+            DGoutput("Z12->ε",4,3);
+            return p;
+        }
+        if(a.charAt(p)=='*'||a.charAt(p)=='/'){
+            if(a.charAt(p)=='*')
+                DGoutput("Z22->*FZ22",7,2);
+            else
+                DGoutput("Z21->/FZ22",7,3);
+            p++;
+            p=F(a,p);
+            if(p<0)
+                return -1;
+            else
+            {
+                p=Z22(a,p);
+                if(p<0)
+                    return -1;
+                else
+                    return p;
+            }
+        }
+        DGoutput("Z22->Z12",7,1);
+        p=Z12(a,p);
+        if(p<0)
+            return -1;
+        else return p;
+    }
+
+    private static int Z23(String a,int p){
+        if(a.length()==p){
+            DGoutput("Z23->Z13",8,1);
+            DGoutput("Z13->ε",5,3);
+            return p;
+        }
+        if(a.charAt(p)=='*'||a.charAt(p)=='/'){
+            if(a.charAt(p)=='*')
+                DGoutput("Z23->*FZ23",8,2);
+            else
+                DGoutput("Z23->/FZ23",8,3);
+            p++;
+            p=F(a,p);
+            if(p<0)
+                return -1;
+            else
+            {
+                p=Z23(a,p);
+                if(p<0)
+                    return -1;
+                else
+                    return p;
+            }
+        }
+        DGoutput("Z23->Z13",8,1);
+        p=Z13(a,p);
+        if(p<0)
+            return -1;
+        else return p;
+    }
+
+    public static void ParseAnalysis_DG(DefaultTableModel model,DefaultTableModel model2){
+        DGmodel=model;
+        DGmodel2=model2;
+        model.setRowCount(0);//清空表格
+        int p = 0;//字符串指针
+        String a = "";//temp用于存放表格中的内容
+        //将队列转换为字符串
+        for (int i = 0; i < types.size(); i++) {
+            if (types.get(i) == "UCON_小数" || types.get(i) == "UCON_整数")
+                a += "i";
+            else
+                a += values.get(i);
+        }
+        int temp;
+        try {
+            temp = E(a, p);
+            if(temp==-1)
+                model.addRow(new String[]{"ERROR!", "ERROR!", "ERROR!", "ERROR!"});
+            else
+                model.addRow(new String[]{"RIGHT!", "RIGHT!", "RIGHT!", "RIGHT!"});
+        }catch (StringIndexOutOfBoundsException e)
+        {
+            model.addRow(new String[]{"ERROR!", "ERROR!", "ERROR!", "ERROR!"});
+        }
     }
 }
-
-

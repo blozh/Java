@@ -1,40 +1,11 @@
 package Compiles;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.GridBagConstraints;
-import java.awt.RenderingHints;
+import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.util.ArrayList;
 
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollBar;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.JTextArea;
+import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
 class LexicalWindow extends ModWindow {
@@ -45,6 +16,9 @@ class LexicalWindow extends ModWindow {
     private JTable table = new JTable(model);
 
     LexicalWindow() {
+        table.getTableHeader().setFont(font);
+        table.setFont(font);
+        table.setRowHeight(30);
         model.setColumnIdentifiers(new String[]{"类别", "单词"});
         buttons[0] = new JButton("打开");
         buttons[1] = new JButton("分析");
@@ -66,7 +40,7 @@ class LexicalWindow extends ModWindow {
         }
         gbc.fill = GridBagConstraints.BOTH;
         for (int i = 0; i < 2; i++) {
-            textAreas[i].setFont(font);
+            textAreas[i].setFont(new Font("XHei Apple",Font.PLAIN,20));
             gbc.weighty = 6 - i * 5;//纵向扩大程度
             addJComponent(scrollPanes[i], 0, i + 1, 3, 1);
         }
@@ -113,6 +87,7 @@ class LexicalWindow extends ModWindow {
             }
         }
         if (actionEvent.getActionCommand() == "分析") {
+            output="";//清空output
             model.setRowCount(0);//清空表格
             input = textAreas[0].getText();
             Analysis.LexicalAnalysis(input);//分析字符串
@@ -120,6 +95,7 @@ class LexicalWindow extends ModWindow {
             ArrayList<String> types = Analysis.getTypes();
             for (int i = 0; i < values.size(); i++) {
                 model.addRow(new String[]{types.get(i), values.get(i)});//必须先添加一行才能赋值，当然也可以addRow一个向量
+                output += ("(" + types.get(i) + "," + values.get(i) + ")" + '\n');
             }
             ArrayList<String> errors = Analysis.getErrors();
             ArrayList<String> errorvalues = Analysis.getErrorvalues();
